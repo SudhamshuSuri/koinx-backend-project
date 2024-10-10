@@ -1,7 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
-require('dotenv').config(); // Load .env variables
+const cron = require('node-cron');
+const dotenv = require('dotenv');
 const cryptoRoutes = require('./routes/cryptoRoutes');
+const cryptoController = require('./controllers/cryptoController');
+
+// Load environment variables
+dotenv.config();
 
 // Initialize the Express app
 const app = express();
@@ -22,6 +27,12 @@ app.use(express.json());
 
 // Routes
 app.use('/api/crypto', cryptoRoutes);
+
+// Cron job to update BTC data every 2 hours
+cron.schedule('0 */2 * * *', async () => {
+  console.log('Fetching and updating BTC data...');
+  await cryptoController.updateBTCData();
+});
 
 // Start the server
 app.listen(PORT, () => {
