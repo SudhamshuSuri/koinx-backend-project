@@ -18,3 +18,9 @@ router.put('/:id', cryptoController.updateCryptocurrency);
 router.delete('/:id', cryptoController.deleteCryptocurrency);
 
 module.exports = router;
+
+
+
+const cron = require('./cron');
+
+// Start the cron job
