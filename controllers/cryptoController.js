@@ -1,65 +1,73 @@
-const axios = require('axios');
 const Crypto = require('../models/Crypto');
 
-// Function to fetch and save BTC data from CoinGecko
-exports.updateBTCData = async () => {
+// Get all cryptocurrencies
+exports.getAllCryptocurrencies = async (req, res) => {
   try {
-    const response = await axios.get('https://api.coingecko.com/api/v3/simple/price', {
-      params: {
-        ids: 'bitcoin',
-        vs_currencies: 'usd',
-        include_market_cap: 'true',
-        include_24hr_change: 'true'
-      }
-    });
+    const cryptocurrencies = await Crypto.find();
+    res.json(cryptocurrencies);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving cryptocurrencies' });
+  }
+};
 
-    const btcData = response.data.bitcoin;
+// Get a specific cryptocurrency by ID
+exports.getCryptocurrencyById = async (req, res) => {
+  try {
+    const cryptocurrency = await Crypto.findById(req.params.id);
+    if (!cryptocurrency) {
+      return res.status(404).json({ message: 'Cryptocurrency not found' });
+    }
+    res.json(cryptocurrency);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving cryptocurrency' });
+  }
+};
 
-    // Create a new record or update the existing BTC record
-    const btc = await Crypto.findOneAndUpdate(
-      { symbol: 'btc' },
-      {
-        name: 'BTC',
-        symbol: 'btc',
-        price: btcData.usd,
-        marketCap: btcData.usd_market_cap,
-        change24h: btcData.usd_24h_change,
-        $push: {
-          historicalPrices: { price: btcData.usd, timestamp: new Date() }
-        }
-      },
-      { upsert: true, new: true }
+// Create a new cryptocurrency
+exports.createCryptocurrency = async (req, res) => {
+  try {
+    const { name, symbol, marketCap } = req.body;
+    if (!name || !symbol || !marketCap) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+    const newCrypto = new Crypto({ name, symbol, marketCap });
+    await newCrypto.save();
+    res.status(201).json(newCrypto);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating cryptocurrency' });
+  }
+};
+
+// Update a cryptocurrency
+exports.updateCryptocurrency = async (req, res) => {
+  try {
+    const { name, symbol, marketCap } = req.body;
+    if (!name || !symbol || !marketCap) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+    const updatedCrypto = await Crypto.findByIdAndUpdate(
+      req.params.id,
+      { name, symbol, marketCap },
+      { new: true }
     );
-
-    console.log('BTC data updated successfully:', btc);
+    if (!updatedCrypto) {
+      return res.status(404).json({ message: 'Cryptocurrency not found' });
+    }
+    res.json(updatedCrypto);
   } catch (error) {
-    console.error('Error fetching data from CoinGecko:', error);
+    res.status(500).json({ message: 'Error updating cryptocurrency' });
   }
 };
 
-// Get statistics for all cryptocurrencies
-exports.getStats = async (req, res) => {
+// Delete a cryptocurrency
+exports.deleteCryptocurrency = async (req, res) => {
   try {
-    const cryptos = await Crypto.find({});
-    res.json(cryptos);
+    const deletedCrypto = await Crypto.findByIdAndDelete(req.params.id);
+    if (!deletedCrypto) {
+      return res.status(404).json({ message: 'Cryptocurrency not found' });
+    }
+    res.json({ message: 'Cryptocurrency deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching stats' });
+    res.status(500).json({ message: 'Error deleting cryptocurrency' });
   }
 };
-
-// Compute standard deviation for BTC price
-exports.getDeviation = async (req, res) => {
-  try {
-    const btcPrices = await Crypto.find({ symbol: 'btc' }, 'historicalPrices.price');
-    const prices = btcPrices.flatMap(item => item.historicalPrices.map(record => record.price));
-
-    const mean = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-    const variance = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / prices.length;
-    const stdDeviation = Math.sqrt(variance);
-
-    res.json({ deviation: stdDeviation });
-  } catch (error) {
-    res.status(500).json({ error: 'Error computing deviation' });
-  }
-};
-

@@ -1,7 +1,4 @@
-const mongoose = require('mongoose');
-const Crypto = require('./Crypto'); // Assuming you save the schema in a 'models' folder
-
-// Connect to MongoDB
+const mongoose = require('mongoose'); const Crypto = require('./Crypto'); // Assuming you save the schema in a 'models' folder Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/cryptoDB', {
   useNewUrlParser: true,
   useUnifiedTopology: true,

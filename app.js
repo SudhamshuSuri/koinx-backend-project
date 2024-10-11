@@ -1,41 +1,20 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const cron = require('node-cron');
-const dotenv = require('dotenv');
-const cryptoRoutes = require('./routes/cryptoRoutes');
+const router = express.Router();
 const cryptoController = require('./controllers/cryptoController');
 
-// Load environment variables
-dotenv.config();
+// Get all cryptocurrencies
+router.get('/', cryptoController.getAllCryptocurrencies);
 
-// Initialize the Express app
-const app = express();
-const PORT = process.env.PORT || 3000;
+// Get a specific cryptocurrency by ID
+router.get('/:id', cryptoController.getCryptocurrencyById);
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch((err) => {
-  console.error('MongoDB connection error:', err);
-});
+// Create a new cryptocurrency
+router.post('/', cryptoController.createCryptocurrency);
 
-// Middleware
-app.use(express.json());
+// Update a cryptocurrency
+router.put('/:id', cryptoController.updateCryptocurrency);
 
-// Routes
-app.use('/api/crypto', cryptoRoutes);
+// Delete a cryptocurrency
+router.delete('/:id', cryptoController.deleteCryptocurrency);
 
-// Cron job to update BTC data every 2 hours
-cron.schedule('0 */2 * * *', async () => {
-  console.log('Fetching and updating BTC data...');
-  await cryptoController.updateBTCData();
-});
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
+module.exports = router;

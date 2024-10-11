@@ -1,12 +1,21 @@
+// routes/cryptoRoutes.js
 const express = require('express');
 const router = express.Router();
 const cryptoController = require('../controllers/cryptoController');
 
-// Route to get statistics about cryptocurrencies
-router.get('/stats', cryptoController.getStats);
+// Get all cryptocurrencies
+router.get('/', cryptoController.getAllCryptocurrencies);
 
-// Route to compute standard deviation for BTC price
-router.get('/deviation', cryptoController.getDeviation);
+// Get a specific cryptocurrency by ID
+router.get('/:id', cryptoController.getCryptocurrencyById);
+
+// Create a new cryptocurrency
+router.post('/', cryptoController.createCryptocurrency);
+
+// Update a cryptocurrency
+router.put('/:id', cryptoController.updateCryptocurrency);
+
+// Delete a cryptocurrency
+router.delete('/:id', cryptoController.deleteCryptocurrency);
 
 module.exports = router;
-
