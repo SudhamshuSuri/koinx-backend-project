@@ -1,2 +1,22 @@
-node_modules/*
+# Node.js and npm files
+node_modules/
+package-lock.json
+
+# MongoDB files
+dump/
+models/crypto-data.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+
+# Log files
+*.log
+
+# Miscellaneous
 .env
